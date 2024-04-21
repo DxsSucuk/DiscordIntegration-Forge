@@ -1,5 +1,6 @@
 package de.erdbeerbaerlp.dcintegration.forge.util;
 
+import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import dcshadow.com.vdurmont.emoji.EmojiParser;
@@ -32,8 +33,8 @@ import net.minecraft.network.protocol.game.ClientboundSoundPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.neoforged.neoforge.server.ServerLifecycleHooks;
-import net.neoforged.neoforge.server.permission.PermissionAPI;
+import net.minecraftforge.server.ServerLifecycleHooks;
+import net.minecraftforge.server.permission.PermissionAPI;
 
 import java.util.HashMap;
 import java.util.List;
@@ -158,7 +159,7 @@ public class ForgeServerInterface implements McServerInterface {
 
     @Override
     public String getNameFromUUID(UUID uuid) {
-        return ServerLifecycleHooks.getCurrentServer().getSessionService().fetchProfile(uuid, false).profile().getName();
+        return ServerLifecycleHooks.getCurrentServer().getSessionService().fillProfileProperties(new GameProfile(uuid, ""), false).getName();
     }
 
     @Override

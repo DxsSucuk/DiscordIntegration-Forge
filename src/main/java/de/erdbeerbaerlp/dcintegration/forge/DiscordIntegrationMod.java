@@ -36,27 +36,27 @@ import net.minecraft.commands.arguments.ComponentArgument;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.IExtensionPoint;
-import net.neoforged.fml.ModList;
-import net.neoforged.fml.ModLoadingContext;
-import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.event.lifecycle.FMLDedicatedServerSetupEvent;
-import net.neoforged.fml.loading.FMLEnvironment;
-import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.event.CommandEvent;
-import net.neoforged.neoforge.event.RegisterCommandsEvent;
-import net.neoforged.neoforge.event.ServerChatEvent;
-import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
-import net.neoforged.neoforge.event.entity.player.AdvancementEvent;
-import net.neoforged.neoforge.event.entity.player.PlayerEvent;
-import net.neoforged.neoforge.event.server.ServerStartedEvent;
-import net.neoforged.neoforge.event.server.ServerStoppedEvent;
-import net.neoforged.neoforge.server.permission.events.PermissionGatherEvent;
-import net.neoforged.neoforge.server.permission.nodes.PermissionNode;
-import net.neoforged.neoforge.server.permission.nodes.PermissionTypes;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.CommandEvent;
+import net.minecraftforge.event.RegisterCommandsEvent;
+import net.minecraftforge.event.ServerChatEvent;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.event.entity.player.AdvancementEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.event.server.ServerStartedEvent;
+import net.minecraftforge.event.server.ServerStoppedEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.IExtensionPoint;
+import net.minecraftforge.fml.ModList;
+import net.minecraftforge.fml.ModLoadingContext;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.lifecycle.FMLDedicatedServerSetupEvent;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.fml.loading.FMLEnvironment;
+import net.minecraftforge.server.permission.events.PermissionGatherEvent;
+import net.minecraftforge.server.permission.nodes.PermissionNode;
+import net.minecraftforge.server.permission.nodes.PermissionTypes;
 import org.apache.commons.lang3.ArrayUtils;
 
 import java.io.File;
@@ -81,7 +81,7 @@ public class DiscordIntegrationMod {
     private boolean stopped = false;
     public static Metrics bstats;
 
-    public DiscordIntegrationMod(IEventBus modEventBus) {
+    public DiscordIntegrationMod() {
         LOGGER.info("Version is " + VERSION);
         bstats = new Metrics(9765);
         ModLoadingContext.get().registerExtensionPoint(IExtensionPoint.DisplayTest.class, () -> new IExtensionPoint.DisplayTest(() -> IExtensionPoint.DisplayTest.IGNORESERVERONLY, (a, b) -> true));
@@ -95,8 +95,8 @@ public class DiscordIntegrationMod {
                 if (Configuration.instance().general.botToken.equals("INSERT BOT TOKEN HERE")) { //Prevent events when token not set or on client
                     LOGGER.error("Please check the config file and set an bot token");
                 } else {
-                    modEventBus.addListener(this::serverSetup);
-                    NeoForge.EVENT_BUS.register(this);
+                    FMLJavaModLoadingContext.get().getModEventBus().addListener(this::serverSetup);
+                    MinecraftForge.EVENT_BUS.register(this);
                 }
             }
         } catch (IOException e) {
@@ -112,6 +112,7 @@ public class DiscordIntegrationMod {
         }
     }
 
+    @SubscribeEvent
     public void serverSetup(FMLDedicatedServerSetupEvent ev) {
         INSTANCE = new DiscordIntegration(new ForgeServerInterface());
         try {
@@ -199,7 +200,7 @@ public class DiscordIntegrationMod {
         if (LinkManager.isPlayerLinked(ev.getEntity().getUUID()) && LinkManager.getLink(null, ev.getEntity().getUUID()).settings.hideFromDiscord)
             return;
         if (ev.getEntity().getServer().getPlayerList().getPlayerAdvancements((ServerPlayer) ev.getEntity()).getOrStartProgress(ev.getAdvancement()).isDone())
-            if (INSTANCE != null && ev.getAdvancement() != null && ev.getAdvancement().value().display().isPresent() && ev.getAdvancement().value().display().get().shouldAnnounceChat())
+            if (INSTANCE != null && ev.getAdvancement() != null && ev.getAdvancement().getDisplay() != null && ev.getAdvancement().getDisplay().shouldAnnounceChat())
                 if (!Localization.instance().advancementMessage.isBlank()) {
                     if (Configuration.instance().embedMode.enabled && Configuration.instance().embedMode.advancementMessage.asEmbed) {
                         final String avatarURL = Configuration.instance().webhook.playerAvatarURL.replace("%uuid%", ev.getEntity().getUUID().toString()).replace("%uuid_dashless%", ev.getEntity().getUUID().toString().replace("-", "")).replace("%name%", ev.getEntity().getName().getString()).replace("%randomUUID%", UUID.randomUUID().toString());
@@ -210,10 +211,10 @@ public class DiscordIntegrationMod {
                                     .replace("%name%", ForgeMessageUtils.formatPlayerName(ev.getEntity()))
                                     .replace("%randomUUID%", UUID.randomUUID().toString())
                                     .replace("%avatarURL%", avatarURL)
-                                    .replace("%advName%", ChatFormatting.stripFormatting(ev.getAdvancement().value().display().get().getTitle().getString()))
-                                    .replace("%advDesc%", ChatFormatting.stripFormatting(ev.getAdvancement().value().display().get().getDescription().getString()))
-                                    .replace("%advNameURL%", URLEncoder.encode(ChatFormatting.stripFormatting(ev.getAdvancement().value().display().get().getTitle().getString()), StandardCharsets.UTF_8))
-                                    .replace("%advDescURL%", URLEncoder.encode(ChatFormatting.stripFormatting(ev.getAdvancement().value().display().get().getDescription().getString()), StandardCharsets.UTF_8))
+                                    .replace("%advName%", ChatFormatting.stripFormatting(ev.getAdvancement().getDisplay().getTitle().getString()))
+                                    .replace("%advDesc%", ChatFormatting.stripFormatting(ev.getAdvancement().getDisplay().getDescription().getString()))
+                                    .replace("%advNameURL%", URLEncoder.encode(ChatFormatting.stripFormatting(ev.getAdvancement().getDisplay().getTitle().getString()), StandardCharsets.UTF_8))
+                                    .replace("%advDescURL%", URLEncoder.encode(ChatFormatting.stripFormatting(ev.getAdvancement().getDisplay().getDescription().getString()), StandardCharsets.UTF_8))
                                     .replace("%avatarURL%", avatarURL)
                                     .replace("%playerColor%", "" + TextColors.generateFromUUID(ev.getEntity().getUUID()).getRGB())
                             );
@@ -223,20 +224,16 @@ public class DiscordIntegrationMod {
                             b = b.setAuthor(ForgeMessageUtils.formatPlayerName(ev.getEntity()), null, avatarURL)
                                     .setDescription(Localization.instance().advancementMessage.replace("%player%", ForgeMessageUtils.formatPlayerName(ev.getEntity())).replace("%advName%",
                                                     ChatFormatting.stripFormatting(ev.getAdvancement()
-                                                            .value()
-                                                            .display()
-                                                            .get()
+                                                            .getDisplay()
                                                             .getTitle()
                                                             .getString()))
                                             .replace("%advDesc%",
                                                     ChatFormatting.stripFormatting(ev.getAdvancement()
-                                                            .value()
-                                                            .display()
-                                                            .get()
+                                                            .getDisplay()
                                                             .getDescription()
                                                             .getString()))
-                                            .replace("\\n", "\n").replace("%advNameURL%", URLEncoder.encode(ChatFormatting.stripFormatting(ev.getAdvancement().value().display().get().getTitle().getString()), StandardCharsets.UTF_8))
-                                            .replace("%advDescURL%", URLEncoder.encode(ChatFormatting.stripFormatting(ev.getAdvancement().value().display().get().getDescription().getString()), StandardCharsets.UTF_8))
+                                            .replace("\\n", "\n").replace("%advNameURL%", URLEncoder.encode(ChatFormatting.stripFormatting(ev.getAdvancement().getDisplay().getTitle().getString()), StandardCharsets.UTF_8))
+                                            .replace("%advDescURL%", URLEncoder.encode(ChatFormatting.stripFormatting(ev.getAdvancement().getDisplay().getDescription().getString()), StandardCharsets.UTF_8))
                                     );
                             INSTANCE.sendMessage(new DiscordMessage(b.build()));
                         }
@@ -244,19 +241,15 @@ public class DiscordIntegrationMod {
                                     ChatFormatting.stripFormatting(ForgeMessageUtils.formatPlayerName(ev.getEntity())))
                             .replace("%advName%",
                                     ChatFormatting.stripFormatting(ev.getAdvancement()
-                                            .value()
-                                            .display()
-                                            .get()
+                                            .getDisplay()
                                             .getTitle()
                                             .getString()))
                             .replace("%advDesc%",
                                     ChatFormatting.stripFormatting(ev.getAdvancement()
-                                                    .value()
-                                                    .display()
-                                                    .get()
+                                                    .getDisplay()
                                                     .getDescription()
-                                                    .getString()).replace("%advNameURL%", URLEncoder.encode(ChatFormatting.stripFormatting(ev.getAdvancement().value().display().get().getTitle().getString()), StandardCharsets.UTF_8))
-                                            .replace("%advDescURL%", URLEncoder.encode(ChatFormatting.stripFormatting(ev.getAdvancement().value().display().get().getDescription().getString()), StandardCharsets.UTF_8))
+                                                    .getString()).replace("%advNameURL%", URLEncoder.encode(ChatFormatting.stripFormatting(ev.getAdvancement().getDisplay().getTitle().getString()), StandardCharsets.UTF_8))
+                                            .replace("%advDescURL%", URLEncoder.encode(ChatFormatting.stripFormatting(ev.getAdvancement().getDisplay().getDescription().getString()), StandardCharsets.UTF_8))
                             )
                             .replace("\\n", "\n"));
                 }

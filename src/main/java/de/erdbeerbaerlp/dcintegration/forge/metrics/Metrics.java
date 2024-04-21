@@ -4,11 +4,11 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.minecraft.client.Minecraft;
 import net.minecraft.server.MinecraftServer;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.fml.loading.FMLLoader;
-import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
-import net.neoforged.neoforge.event.server.ServerStoppedEvent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.server.ServerAboutToStartEvent;
+import net.minecraftforge.event.server.ServerStoppedEvent;
+import net.minecraftforge.fml.loading.FMLLoader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -66,8 +66,8 @@ public class Metrics {
                         config.logSentData,
                         config.logResponseStatusText);
         // register the listener
-        NeoForge.EVENT_BUS.addListener((ServerAboutToStartEvent event) -> capturedServer.set(event.getServer()));
-        NeoForge.EVENT_BUS.addListener((ServerStoppedEvent event) -> capturedServer.compareAndSet(event.getServer(), null));
+        MinecraftForge.EVENT_BUS.addListener((ServerAboutToStartEvent event) -> capturedServer.set(event.getServer()));
+        MinecraftForge.EVENT_BUS.addListener((ServerStoppedEvent event) -> capturedServer.compareAndSet(event.getServer(), null));
     }
 
     private MetricsConfig readConfig(Path configFile) {

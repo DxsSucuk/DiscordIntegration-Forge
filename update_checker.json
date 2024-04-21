@@ -3,6 +3,79 @@
     "version": "3.0.7",
     "changelog": "Fixed more bugs\nAdded a /discord rawmsg command\nAdded whitelist option for commandlog",
     "type": "release"
+  },
+  {
+    "version": "3.0.5",
+    "changelog": "Fix server stopping not working\nFix update checker\nImplement URL Encoded advancement message",
+    "type": "beta"
+  },{
+    "version": "3.0.4.1",
+    "changelog": "Fix death message custom embed",
+    "type": "beta"
+  },{
+    "version": "3.0.4",
+    "changelog": "More bug fixes\nImplement permissions",
+    "type": "beta"
+  },{
+    "version": "3.0.3",
+    "changelog": "Large discord integration rewrite adding new features and fixing long existing bugs\nOld configuration can be used as-is\n\nAdded custom status\nAdded tellraw\nAdded option to disable chat message editing for compatibility reasons\nFixed lots of bugs",
+    "type": "beta"
+  },{
+    "version": "3.0.0",
+    "changelog": "Added new event handling methods for addons\nOtherwise mostly a bug fix update\nDon't forget to use 'discord migrate' in console when updating from below 2.6.0",
+    "type": "alpha"
+  },{
+    "version": "2.6.4",
+    "changelog": "Added new event handling methods for addons\nOtherwise mostly a bug fix update\nDon't forget to use 'discord migrate' in console when updating from below 2.6.0",
+    "type": "beta"
+  },
+  {
+    "version": "2.5.0",
+    "changelog": "Fix a few issues\nAdd new custom command parameter\nFix default webhook name\nBump minimum Forge version to 40.1.0\nFix mentions in webhooks\nFix mentions in any non-chat message\nRemove /discord stop and /discord restart ingame commands",
+    "type": "beta"
+  },{
+    "version": "2.4.7",
+    "changelog": "Update against new discord update",
+    "type": "release"
+  },{
+    "version": "2.4.5",
+    "changelog": "Hopefully last member retrieval fix, commands should work again properly now",
+    "type": "beta"
+  },{
+    "version": "2.4.4",
+    "changelog": "ALPHA Version, expect bugs!\nAnother member retrieval fix",
+    "type": "alpha"
+  },{
+    "version": "2.4.3",
+    "changelog": "ALPHA Version, expect bugs!\nFix joining not working when having no required roles set for whitelist mode\nFix whitelist mode link command output\nFix /say and /me commands",
+    "type": "alpha"
+  },{
+    "version": "2.4.2",
+    "changelog": "ALPHA Version, expect bugs!\nFix messages file not generated",
+    "type": "alpha"
+  },{
+    "version": "2.3.5",
+    "changelog": "Fix attachments again",
+    "type": "beta"
+  },{
+    "version": "2.3.4",
+    "changelog": "Note that this is still beta\n\nMoved DM commands to slash commands\n\nBug Fixes:\nFix advancement spam, mod now checks if advancement is complete\nFix several crashes if setup isn't done properly, showing error in log instead\nFix attachments and embeds",
+    "type": "beta"
+  },
+  {
+    "version": "2.3.2",
+    "changelog": "Fix crash on load\nRework config commands",
+    "type": "beta"
+  },
+  {
+    "version": "2.3.1",
+    "changelog": "READ CURSEFORGE CHANGELOG BEFORE UPDATING!",
+    "type": "beta"
+  },
+  {
+    "version": "2.1.1",
+    "changelog": "Multiple bugfixes",
+    "type": "release"
   },{
     "version": "3.0.6",
     "changelog": "Port to neoforge (now required 1.20.4 and onwards)",
