@@ -1,7 +1,7 @@
 package de.erdbeerbaerlp.dcintegration.forge.api;
 
 import de.erdbeerbaerlp.dcintegration.common.api.DiscordEventHandler;
-import net.minecraftforge.event.ServerChatEvent;
+import net.neoforged.neoforge.event.ServerChatEvent;
 
 public abstract class ForgeDiscordEventHandler extends DiscordEventHandler {
     /**

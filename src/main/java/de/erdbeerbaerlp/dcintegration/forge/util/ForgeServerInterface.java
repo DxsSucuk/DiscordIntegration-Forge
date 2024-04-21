@@ -32,8 +32,8 @@ import net.minecraft.network.protocol.game.ClientboundSoundPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraftforge.server.ServerLifecycleHooks;
-import net.minecraftforge.server.permission.PermissionAPI;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
+import net.neoforged.neoforge.server.permission.PermissionAPI;
 
 import java.util.HashMap;
 import java.util.List;
@@ -181,5 +181,15 @@ public class ForgeServerInterface implements McServerInterface {
             }
         }
         return false;
+    }
+    @Override
+    public String runMCCommand(String cmd) {
+        final DCCommandSender s = new DCCommandSender();
+        try {
+            ServerLifecycleHooks.getCurrentServer().getCommands().getDispatcher().execute(cmd.trim(), s.createCommandSourceStack());
+            return s.message.toString();
+        } catch (CommandSyntaxException e) {
+            return e.getMessage();
+        }
     }
 }

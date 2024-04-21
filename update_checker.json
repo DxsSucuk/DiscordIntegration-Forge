@@ -1,5 +1,13 @@
 [
   {
+    "version": "3.0.7",
+    "changelog": "Fixed more bugs\nAdded a /discord rawmsg command\nAdded whitelist option for commandlog",
+    "type": "release"
+  },{
+    "version": "3.0.6",
+    "changelog": "Port to neoforge (now required 1.20.4 and onwards)",
+    "type": "release"
+  },{
     "version": "3.0.5",
     "changelog": "Fix server stopping not working\nFix update checker\nImplement URL Encoded advancement message",
     "type": "beta"

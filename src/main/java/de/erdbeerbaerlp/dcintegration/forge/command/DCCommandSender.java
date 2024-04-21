@@ -17,7 +17,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.server.ServerLifecycleHooks;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -25,8 +25,9 @@ import java.util.concurrent.CompletableFuture;
 public class DCCommandSender implements CommandSource {
     private final CompletableFuture<InteractionHook> cmdMsg;
     private final Component name;
+
     private CompletableFuture<Message> cmdMessage;
-    final StringBuilder message = new StringBuilder();
+    public final StringBuilder message = new StringBuilder();
 
     private final MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
 
@@ -51,7 +52,10 @@ public class DCCommandSender implements CommandSource {
 
         this.cmdMsg = cmdMsg;
     }
-
+    public DCCommandSender() {
+        this.cmdMsg = null;
+        this.name = Component.literal("Discord Integration");
+    }
 
     private static String textComponentToDiscordMessage(Component component) {
         if (component == null) return "";
@@ -62,14 +66,15 @@ public class DCCommandSender implements CommandSource {
     @Override
     public void sendSystemMessage(Component p_215097_) {
         message.append(textComponentToDiscordMessage(p_215097_)).append("\n");
-        if (cmdMessage == null)
-            cmdMsg.thenAccept((msg) -> {
-                cmdMessage = msg.editOriginal(message.toString().trim()).submit();
-            });
-        else
-            cmdMessage.thenAccept((msg) -> {
-                cmdMessage = msg.editMessage(message.toString().trim()).submit();
-            });
+        if (cmdMsg != null)
+            if (cmdMessage == null)
+                cmdMsg.thenAccept((msg) -> {
+                    cmdMessage = msg.editOriginal(message.toString().trim()).submit();
+                });
+            else
+                cmdMessage.thenAccept((msg) -> {
+                    cmdMessage = msg.editMessage(message.toString().trim()).submit();
+                });
     }
 
     @Override

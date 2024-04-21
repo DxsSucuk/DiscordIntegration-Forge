@@ -1,38 +1,30 @@
 buildscript {
     repositories {
         mavenCentral()
-        maven { url = "https://files.minecraftforge.net/maven" }
-        maven {
-            name = 'sponge'
-            url = 'https://repo.spongepowered.org/maven'
-        }
         maven {
                 url "https://plugins.gradle.org/m2/"
         }
-    }
-    dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
-        classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
     }
 }
 
 //Gradle Plugins
 plugins {
+    id 'net.neoforged.gradle.userdev' version '7.0.80'
     id "com.matthewprenger.cursegradle" version "1.4.0"
     id 'java'
+    id 'idea'
     id "com.modrinth.minotaur" version "2.+"
-    id 'com.github.johnrengelman.shadow' version '7.1.2'
+    id 'com.github.johnrengelman.shadow' version '8.0.0+'
+
 }
-apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
-apply plugin: 'org.spongepowered.mixin'
 
 
 //Build variables
-version = "3.0.5"
+version = "3.0.7"
 group = "de.erdbeerbaerlp.dcintegration"
-archivesBaseName = "dcintegration-forge"
+archivesBaseName = "dcintegration-neoforge"
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
@@ -57,16 +49,10 @@ repositories {
     maven { url "https://repo.erdbeerbaerlp.de/repository/maven-public/" }
 }
 
-//Forge
-minecraft {
-    mappings channel: 'official', version: "${project.mcVersion}"
-}
-
-
 //ShadowJar
 configurations {
     embed
-    minecraftLibrary.extendsFrom(embed)
+    compileOnly.extendsFrom(embed)
 }
 task release {
 
@@ -77,12 +63,7 @@ shadowJar {
     configurations = [project.configurations.embed]
     relocate 'org.slf4j', 'dcshadow.org.slf4j'
 }
-reobf {
-    shadowJar {
-        dependsOn tasks.createMcpToSrg
-        mappings = tasks.createMcpToSrg.outputs.files.singleFile
-    }
-}
+
 artifacts {
     archives tasks.shadowJar
 }
@@ -94,26 +75,16 @@ configurations.all {
 //Dependencies
 dependencies {
     // =========  Common  =====================
-    embed('de.erdbeerbaerlp:dcintegration.common:3.0.5') {
+    embed('de.erdbeerbaerlp:dcintegration.common:3.0.7') {
         changing = true
         transitive = false
     }
 
-    // =========  Minecraft Forge =============
-    minecraft "net.minecraftforge:forge:${project.mcVersion}-49.0.9"
-
-    //Mixin
-    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+    // =========  NeoForge =============
+    implementation "net.neoforged:neoforge:20.4.80-beta"
 
     //Dynmap-API
     compileOnly('com.github.webbukkit:DynmapCoreAPI:2.5')
-}
-
-
-//Mixin
-mixin {
-    add sourceSets.main, 'mixins.dcintegration.refmap.json'
-    config 'mixins.dcintegration.json'
 }
 
 //Manifest attributes
@@ -145,7 +116,7 @@ curseforge {
             releaseType = project.releaseType.toLowerCase()
             addGameVersion "${project.mcVersion}"
             mainArtifact(jar) {
-                displayName = "DiscordIntegration-Forge $version (MC ${project.mcVersion})"
+                displayName = "DiscordIntegration-NeoForge $version (MC ${project.mcVersion})"
             }
             relations {
                 optionalDependency("luckperms")
@@ -155,14 +126,14 @@ curseforge {
 }
 modrinth {
     if (project.hasProperty('modrinth.apikey')) { // $GRADLE_USER_HOME/gradle.properties
-        token = getProperty("modrinth.apikey") // Use an environment property!
+        token = getProperty("modrinth.apikey")
         projectId = 'rbJ7eS5V'
         versionNumber = version + "-${project.mcVersion}"
-        versionName = "DiscordIntegration-Forge $version (MC ${project.mcVersion})"
+        versionName = "DiscordIntegration-NeoForge $version (MC ${project.mcVersion})"
         uploadFile = shadowJar
         changelog = project.changelog
         gameVersions = ["${project.mcVersion}"]
-        loaders = ['forge']
+        loaders = ['neoforge']
         versionType = project.releaseType.toUpperCase()
         dependencies {
             optional.project "luckperms"
