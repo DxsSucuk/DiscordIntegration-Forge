@@ -9,22 +9,27 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import dcshadow.org.apache.commons.collections4.keyvalue.DefaultMapEntry;
 import de.erdbeerbaerlp.dcintegration.common.storage.Configuration;
 import de.erdbeerbaerlp.dcintegration.common.util.MessageUtils;
+import de.erdbeerbaerlp.dcintegration.forge.util.accessors.ShowInTooltipAccessor;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.minecraft.ChatFormatting;
-import net.minecraft.commands.arguments.ComponentArgument;
 import net.minecraft.commands.arguments.NbtTagArgument;
 import net.minecraft.core.DefaultedRegistry;
+import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponentMap;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.StringTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.component.ItemLore;
+import net.minecraft.world.item.component.Unbreakable;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -52,7 +57,7 @@ public class ForgeMessageUtils extends MessageUtils {
         if (!Configuration.instance().forgeSpecific.sendItemInfo) return null;
         JsonObject json;
         try {
-            final JsonElement jsonElement = JsonParser.parseString(Component.Serializer.toJson(component));
+            final JsonElement jsonElement = JsonParser.parseString(Component.Serializer.toJson(component, ServerLifecycleHooks.getCurrentServer().registryAccess()));
             if (jsonElement.isJsonObject())
                 json = jsonElement.getAsJsonObject();
             else return null;
@@ -71,50 +76,40 @@ public class ForgeMessageUtils extends MessageUtils {
                                 final JsonObject item = hoverEvent.getAsJsonObject("contents").getAsJsonObject();
                                 try {
                                     final ItemStack is = new ItemStack(itemreg.get(new ResourceLocation(item.get("id").getAsString())));
-                                    if (item.has("tag")) {
-                                        final CompoundTag tag = (CompoundTag) NbtTagArgument.nbtTag().parse(new StringReader(item.get("tag").getAsString()));
-                                        is.setTag(tag);
-                                    }
-                                    final CompoundTag itemTag = is.getOrCreateTag();
+                                    ItemStack.parse(ServerLifecycleHooks.getCurrentServer().registryAccess(), NbtTagArgument.nbtTag().parse(new StringReader(item.getAsString())));
+                                    final DataComponentMap itemTag = is.getComponents();
                                     final EmbedBuilder b = new EmbedBuilder();
-                                    String title = is.hasCustomHoverName() ? is.getDisplayName().getString() : is.getItem().getDescription().getString();
-                                    if (title.isEmpty())
-                                        title = is.getItem().getDescriptionId();
+                                    Component title = itemTag.getOrDefault(DataComponents.CUSTOM_NAME, Component.translatable(is.getItemHolder().getRegisteredName(), is.getDisplayName().getString(), null));
+                                    if (title.toString().isEmpty())
+                                        title = Component.translatable(is.getItemHolder().getRegisteredName());
                                     else
-                                        b.setFooter(is.getItem().getDescriptionId());
-                                    b.setTitle(title);
+                                        b.setFooter(is.getItemHolder().getRegisteredName().toString());
+                                    b.setTitle(title.getString());
                                     final StringBuilder tooltip = new StringBuilder();
                                     boolean[] flags = new boolean[6]; // Enchantments, Modifiers, Unbreakable, CanDestroy, CanPlace, Other
                                     Arrays.fill(flags, false); // Set everything visible
 
-                                    if (itemTag.contains("HideFlags")) {
-                                        final int input = (itemTag.getInt("HideFlags"));
-                                        for (int i = 0; i < flags.length; i++) {
-                                            flags[i] = (input & (1 << i)) != 0;
-                                        }
-                                    }
                                     //Add Enchantments
-                                    if (!flags[0]) {
-                                        EnchantmentHelper.getEnchantments(is).forEach((ench, lvl) -> {
-                                            tooltip.append(ChatFormatting.stripFormatting(ench.getFullname(lvl).getString())).append("\n");
-                                        });
-                                    }
-                                    //Add Lores
-                                    final ListTag list = itemTag.getCompound("display").getList("Lore", 8);
-                                    list.forEach((nbt) -> {
-                                        try {
-                                            if (nbt instanceof StringTag) {
-                                                final Component comp = ComponentArgument.textComponent().parse(new StringReader(nbt.getAsString()));
-                                                tooltip.append("_").append(comp.getString()).append("_\n");
+                                    if (itemTag.has(DataComponents.ENCHANTMENTS)) {
+                                        final ItemEnchantments e = itemTag.get(DataComponents.ENCHANTMENTS);
+                                        if (((ShowInTooltipAccessor) e).discordIntegrationFabric$showsInTooltip())
+                                            for (Object2IntMap.Entry<Holder<Enchantment>> ench : e.entrySet()) {
+                                                tooltip.append(ChatFormatting.stripFormatting(ench.getKey().value().getFullname(e.getLevel(ench.getKey().value())).getString())).append("\n");
                                             }
-                                        } catch (CommandSyntaxException e) {
-                                            e.printStackTrace();
+                                    }
+                                    if(itemTag.has(DataComponents.LORE)) {
+                                        final ItemLore l = itemTag.get(DataComponents.LORE);
+                                        //Add Lores
+                                        for (Component line : l.lines()) {
+                                            tooltip.append("_").append(line.getString()).append("_\n");
                                         }
-                                    });
+                                    }
                                     //Add 'Unbreakable' Tag
-                                    if (!flags[2] && itemTag.contains("Unbreakable") && itemTag.getBoolean("Unbreakable"))
-                                        tooltip.append("Unbreakable\n");
-
+                                    if(itemTag.has(DataComponents.UNBREAKABLE)){
+                                        final Unbreakable unb = itemTag.get(DataComponents.UNBREAKABLE);
+                                        if (unb.showInTooltip())
+                                            tooltip.append("Unbreakable\n");
+                                    }
                                     b.setDescription(tooltip.toString());
                                     return b.build();
                                 } catch (CommandSyntaxException ignored) {

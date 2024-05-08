@@ -1,7 +1,6 @@
 package de.erdbeerbaerlp.dcintegration.forge.mixin;
 
 import com.mojang.authlib.GameProfile;
-import com.mojang.brigadier.StringReader;
 import dcshadow.net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import de.erdbeerbaerlp.dcintegration.common.DiscordIntegration;
 import de.erdbeerbaerlp.dcintegration.common.compat.FloodgateUtils;
@@ -9,7 +8,6 @@ import de.erdbeerbaerlp.dcintegration.common.storage.Configuration;
 import de.erdbeerbaerlp.dcintegration.common.storage.Localization;
 import de.erdbeerbaerlp.dcintegration.common.storage.linking.LinkManager;
 import de.erdbeerbaerlp.dcintegration.common.util.MinecraftPermission;
-import net.minecraft.commands.arguments.ComponentArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.players.PlayerList;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
@@ -32,7 +30,7 @@ public class MixinPlayerLogin {
             if(eventKick != null){
                 final String jsonComp = GsonComponentSerializer.gson().serialize(eventKick).replace("\\\\n", "\n");
                 try {
-                    final Component comp = ComponentArgument.textComponent().parse(new StringReader(jsonComp));
+                    final Component comp = Component.Serializer.fromJson(jsonComp, ServerLifecycleHooks.getCurrentServer().registryAccess());
                     cir.setReturnValue(comp);
                 } catch (Exception e) {
                     e.printStackTrace();

@@ -9,12 +9,12 @@ buildscript {
 
 //Gradle Plugins
 plugins {
-    id 'net.neoforged.gradle.userdev' version '7.0.80'
     id "com.matthewprenger.cursegradle" version "1.4.0"
     id 'java'
     id 'idea'
     id "com.modrinth.minotaur" version "2.+"
-    id 'com.github.johnrengelman.shadow' version '8.0.0+'
+    id 'com.github.johnrengelman.shadow' version '8.1.1+'
+    id 'net.neoforged.gradle.userdev' version '7.0.109'
 
 }
 apply plugin: 'eclipse'
@@ -26,7 +26,7 @@ version = "3.0.7"
 group = "de.erdbeerbaerlp.dcintegration"
 archivesBaseName = "dcintegration-neoforge"
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
 //Gradle Repositories
 repositories {
@@ -35,7 +35,6 @@ repositories {
         name = 'sponge'
         url = 'https://repo.spongepowered.org/maven'
     }
-    maven { url "https://nexus.vankka.dev/repository/maven-public/" }
     maven { url "https://repository.dev.gotan.io/repository/gotan.os/" }
     maven { url "https://repo.opencollab.dev/maven-snapshots" }
     maven { url "https://repo.opencollab.dev/maven-releases" }
@@ -54,6 +53,8 @@ configurations {
     embed
     compileOnly.extendsFrom(embed)
 }
+
+sourceSets.main.resources { srcDir 'src/generated/resources' }
 task release {
 
 }
@@ -81,7 +82,7 @@ dependencies {
     }
 
     // =========  NeoForge =============
-    implementation "net.neoforged:neoforge:20.4.80-beta"
+    implementation "net.neoforged:neoforge:20.6.48-beta"
 
     //Dynmap-API
     compileOnly('com.github.webbukkit:DynmapCoreAPI:2.5')
