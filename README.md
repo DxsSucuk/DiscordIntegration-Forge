@@ -1,6 +1,5 @@
 # Discord-Integration
-[![forthebadge](https://forthebadge.com/images/badges/works-on-my-machine.svg)](https://forthebadge.com)[![](http://cf.way2muchnoise.eu/full_324952_downloads.svg)![](http://cf.way2muchnoise.eu/versions/For%20Minecraft_324952_all.svg)](https://www.curseforge.com/minecraft/mc-mods/dcintegration)
-
+![](http://cf.way2muchnoise.eu/full_324952_downloads.svg) ![Modrinth Downloads](https://img.shields.io/modrinth/dt/dcintegration?style=flat&logo=modrinth)
 
 This mod links your server chat with a channel on your discord server.
 
