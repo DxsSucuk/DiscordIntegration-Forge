@@ -21,7 +21,7 @@ plugins {
     id "com.matthewprenger.cursegradle" version "1.4.0"
     id 'java'
     id "com.modrinth.minotaur" version "2.+"
-    id 'com.github.johnrengelman.shadow' version '8.1+'
+    id 'com.github.johnrengelman.shadow' version '8+'
 }
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'eclipse'
@@ -30,7 +30,7 @@ apply plugin: 'org.spongepowered.mixin'
 
 
 //Build variables
-version = "3.0.7"
+version = "3.0.7.1"
 group = "de.erdbeerbaerlp.dcintegration"
 archivesBaseName = "dcintegration-forge"
 
@@ -77,14 +77,16 @@ shadowJar {
     configurations = [project.configurations.embed]
     relocate 'org.slf4j', 'dcshadow.org.slf4j'
 }
+
+artifacts {
+    archives tasks.shadowJar
+}
 reobf {
     shadowJar {}
 }
 tasks.assemble.dependsOn 'shadowJar'
 tasks.shadowJar.dependsOn 'reobfJar'
-artifacts {
-    archives tasks.shadowJar
-}
+
 configurations.all {
     resolutionStrategy {
         cacheChangingModulesFor 1, 'minutes'
